@@ -581,6 +581,22 @@ export default function AdminPanel() {
                     {Math.round(completedRentals.reduce((acc, r) => acc + (r.endTime - r.startTime), 0) / (1000 * 60))} Dakika
                   </div>
                 </div>
+                <div className="stat-card" style={{ borderTop: '4px solid #2196f3' }}>
+                  <div className="stat-label">Ortalama Kiralama Süresi</div>
+                  <div className="stat-value">
+                    {completedRentals.length > 0 
+                      ? Math.round((completedRentals.reduce((acc, r) => acc + (r.endTime - r.startTime), 0) / (1000 * 60)) / completedRentals.length) 
+                      : 0} Dakika
+                  </div>
+                </div>
+                <div className="stat-card" style={{ borderTop: '4px solid #9c27b0' }}>
+                  <div className="stat-label">Çanta Durumu</div>
+                  <div className="stat-value">
+                    <span style={{ color: 'var(--warning)', marginRight: 4 }}>{bags.filter(b => !b.available).length}</span> 
+                    / {bags.length}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Kullanımda / Toplam Çanta</div>
+                </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20, marginTop: 20 }}>
@@ -593,16 +609,26 @@ export default function AdminPanel() {
                   <div className="report-list">
                     {(() => {
                       const locMap = {};
+                      const locRevenue = {};
                       rentals.forEach(r => {
                         locMap[r.locationName] = (locMap[r.locationName] || 0) + 1;
+                        if (r.status === 'completed') {
+                          locRevenue[r.locationName] = (locRevenue[r.locationName] || 0) + (r.fee || 0);
+                        }
                       });
                       const total = rentals.length || 1;
                       return Object.entries(locMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => {
                         const pct = Math.round((count / total) * 100);
+                        const revenue = locRevenue[name] || 0;
                         return (
                           <div key={name} className="report-item">
                             <div className="report-item-info">
-                              <span>{name}</span>
+                              <span>
+                                {name} 
+                                <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 8 }}>
+                                  ({revenue} TL Gelir)
+                                </span>
+                              </span>
                               <span style={{ fontWeight: 700 }}>%{pct}</span>
                             </div>
                             <div className="progress-bar-bg">
