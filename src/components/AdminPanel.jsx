@@ -595,16 +595,35 @@ export default function AdminPanel() {
                 </div>
                 <div className="stat-card" style={{ borderTop: '4px solid var(--green-mid)' }}>
                   <div className="stat-label">Ortalama Kiralama Süresi</div>
-                  <div className="stat-value">{formatElapsed(averageRentalDurationSeconds)}</div>
+                  <div className="stat-value">{Math.round(averageRentalDurationSeconds / 60)} dakika</div>
                   <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
                     {completedRentalsWithDuration.length} tamamlanan kiralama baz alındı
                   </div>
                 </div>
-                <div className="stat-card" style={{ borderTop: '4px solid var(--danger)' }}>
-                  <div className="stat-label">Çanta Envanteri</div>
-                  <div className="stat-value">{totalBags}</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
-                    {bagsInUse} çanta şu anda kullanımda
+                <div className="stat-card" style={{ borderTop: '4px solid var(--danger)', gridColumn: '1 / -1' }}>
+                  <div style={{ marginBottom: 16 }}>
+                    <div className="stat-label">Çanta Envanteri</div>
+                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12 }}>
+                      <div className="stat-value">{totalBags}</div>
+                      <div style={{ fontSize: 14, color: 'var(--text-muted)', paddingBottom: 4 }}>Toplam Çanta ({bagsInUse} kullanımda)</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', borderTop: '1px solid #eee', paddingTop: 16 }}>
+                    {locations.map(loc => {
+                      const locBags = bags.filter(b => b.locationId === loc.id);
+                      const availableCount = locBags.filter(b => b.available).length;
+                      return (
+                        <div key={loc.id} style={{ flex: '1 1 200px', background: 'var(--bg-color, #f8f9fa)', padding: '12px 16px', borderRadius: 8, border: '1px solid #eee' }}>
+                          <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span>📍</span> {loc.name}
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                            <span style={{ color: 'var(--text-muted)' }}>Toplam: <strong style={{ color: '#333' }}>{locBags.length}</strong></span>
+                            <span style={{ color: 'var(--green-dark)', fontWeight: 600 }}>Müsait: {availableCount}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
