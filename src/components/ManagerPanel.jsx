@@ -1,33 +1,37 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useApp } from '../store/AppContext';
 
-const managerTabs = [
-  { id: 'overview', icon: '▦', label: 'Genel Bakis' },
-  { id: 'locations', icon: '⌖', label: 'Mekanlar' },
-  { id: 'inventory', icon: '▤', label: 'Envanter' },
-  { id: 'finance', icon: '◉', label: 'Finans' },
-];
+const LIVE_STATUSES = ['active', 'overdue', 'pending_return'];
 
-const fallbackLocations = [
-  { name: 'Starbucks Nisantasi', address: 'Istanbul, TR' },
-  { name: 'BigChefs Akasya', address: 'Istanbul, TR' },
-  { name: 'Espressolab Besiktas', address: 'Istanbul, TR' },
-];
+function csvEscape(value) {
+  const normalized = value == null ? '' : String(value);
+  return `"${normalized.replace(/"/g, '""')}"`;
+}
 
-function BarChart({ values }) {
+function downloadCsv(filename, rows) {
+  const csv = rows.map(row => row.map(csvEscape).join(',')).join('\n');
+  const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function MiniBars({ values }) {
   const max = Math.max(...values.map(item => item.value), 1);
 
   return (
-    <div className="manager-bars" aria-label="Buyume trendleri">
+    <div className="manager-mini-bars" aria-label="Son 7 gun kiralama trendi">
       {values.map(item => (
-        <div className="manager-bar-item" key={item.label}>
-          <div className="manager-bar-track">
-            <span
-              className={`manager-bar ${item.highlight ? 'is-highlighted' : ''}`}
-              style={{ height: `${Math.max((item.value / max) * 100, 18)}%` }}
-            />
+        <div className="manager-mini-bar-item" key={item.key}>
+          <div className="manager-mini-bar-track">
+            <span style={{ height: `${item.value ? Math.max((item.value / max) * 100, 18) : 4}%` }} />
           </div>
-          <span>{item.label}</span>
+          <b>{item.label}</b>
         </div>
       ))}
     </div>
@@ -36,191 +40,186 @@ function BarChart({ values }) {
 
 export default function ManagerPanel() {
   const { rentals, bags, locations, currentUser, logout } = useApp();
-  const [activeTab, setActiveTab] = useState('overview');
 
-  const liveStatuses = ['active', 'overdue', 'pending_return'];
-  const activeRentals = rentals.filter(rental => liveStatuses.includes(rental.status));
+  const activeRentals = rentals.filter(rental => LIVE_STATUSES.includes(rental.status));
   const completedRentals = rentals.filter(rental => rental.status === 'completed');
-  const totalRevenue = completedRentals.reduce((sum, rental) => sum + (rental.fee || 0), 0);
-  const rentedBagIds = new Set(activeRentals.map(rental => rental.bagId).filter(Boolean));
-  const availableBags = Math.max(bags.length - rentedBagIds.size, 0);
+  const activeBagIds = new Set(activeRentals.map(rental => rental.bagId).filter(Boolean));
+  const availableBags = bags.filter(bag => bag.available).length;
+  const inventoryUsage = bags.length ? Math.round(((bags.length - availableBags) / bags.length) * 100) : 0;
 
   const averageHours = useMemo(() => {
-    const completedWithDuration = completedRentals.filter(rental => rental.startTime && rental.endTime && rental.endTime > rental.startTime);
-    if (!completedWithDuration.length) return 4.5;
-    const totalMs = completedWithDuration.reduce((sum, rental) => sum + (rental.endTime - rental.startTime), 0);
-    return totalMs / completedWithDuration.length / 3600000;
+    const rentalsWithDuration = completedRentals.filter(rental => (
+      Number.isFinite(rental.startTime) &&
+      Number.isFinite(rental.endTime) &&
+      rental.endTime > rental.startTime
+    ));
+
+    if (!rentalsWithDuration.length) return 0;
+
+    const totalMs = rentalsWithDuration.reduce((sum, rental) => sum + (rental.endTime - rental.startTime), 0);
+    return totalMs / rentalsWithDuration.length / 3600000;
   }, [completedRentals]);
 
   const locationRows = useMemo(() => {
-    const sourceLocations = locations.length ? locations : fallbackLocations;
-
-    return sourceLocations.slice(0, 3).map((location, index) => {
-      const locationName = location.name;
+    return locations.map(location => {
       const locationBags = bags.filter(bag => bag.locationId === location.id);
-      const locationRentals = rentals.filter(rental => rental.locationName === locationName);
-      const activeCount = locationRentals.filter(rental => liveStatuses.includes(rental.status)).length;
+      const locationRentals = rentals.filter(rental => rental.locationName === location.name);
+      const activeCount = locationRentals.filter(rental => LIVE_STATUSES.includes(rental.status)).length;
       const returnCount = locationRentals.filter(rental => rental.status === 'completed' || rental.status === 'pending_return').length;
-      const revenue = locationRentals.reduce((sum, rental) => sum + (rental.fee || 0), 0);
-      const capacity = locationBags.length || [50, 40, 30][index];
-      const current = locationBags.filter(bag => bag.available).length || [42, 8, 25][index];
-      const isLow = current / capacity < 0.35;
+      const revenue = locationRentals
+        .filter(rental => rental.status === 'completed')
+        .reduce((sum, rental) => sum + (rental.fee || 0), 0);
+      const capacity = locationBags.length;
+      const available = locationBags.filter(bag => bag.available).length;
+      const availabilityRate = capacity ? available / capacity : 0;
+      const isLow = capacity > 0 && availabilityRate < 0.35;
 
       return {
-        id: location.id || locationName,
-        name: locationName,
-        address: location.address || 'Istanbul, TR',
-        icon: ['☕', '🍴', '▰'][index] || '▰',
-        current,
+        id: location.id,
+        name: location.name,
+        address: location.address || '',
+        available,
         capacity,
-        rentals: activeCount || [156, 210, 94][index],
-        returns: returnCount || [148, 202, 88][index],
-        revenue: revenue || [12450, 18920, 7100][index],
-        status: isLow ? 'Dusuk Stok' : 'Aktif',
+        activeCount,
+        returnCount,
+        revenue,
+        status: capacity === 0 ? 'Canta Yok' : isLow ? 'Dusuk Stok' : 'Aktif',
         isLow,
       };
     });
   }, [bags, locations, rentals]);
 
-  const trendValues = [
-    { label: 'Pzt', value: 22 },
-    { label: 'Sal', value: 30 },
-    { label: 'Car', value: 24 },
-    { label: 'Per', value: 38 },
-    { label: 'Cum', value: 46 },
-    { label: 'Cmt', value: 36 },
-    { label: 'Paz', value: 52, highlight: true },
-  ];
+  const trendValues = useMemo(() => {
+    const formatter = new Intl.DateTimeFormat('tr-TR', { weekday: 'short' });
+    const today = new Date();
+
+    return Array.from({ length: 7 }, (_, index) => {
+      const day = new Date(today);
+      day.setDate(today.getDate() - (6 - index));
+      day.setHours(0, 0, 0, 0);
+      const nextDay = new Date(day);
+      nextDay.setDate(day.getDate() + 1);
+
+      return {
+        key: day.toISOString(),
+        label: formatter.format(day),
+        value: rentals.filter(rental => rental.startTime >= day.getTime() && rental.startTime < nextDay.getTime()).length,
+      };
+    });
+  }, [rentals]);
+
+  const exportLocationCsv = () => {
+    const rows = [
+      ['Mekan', 'Adres', 'Musait Canta', 'Toplam Canta', 'Aktif Kiralama', 'Iade/Tamamlanan', 'Toplam Kazanc', 'Durum'],
+      ...locationRows.map(row => [
+        row.name,
+        row.address,
+        row.available,
+        row.capacity,
+        row.activeCount,
+        row.returnCount,
+        row.revenue,
+        row.status,
+      ]),
+    ];
+
+    downloadCsv(`ecostyle-mekan-raporu-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+  };
 
   return (
-    <div className="manager-shell">
-      <aside className="manager-sidebar">
-        <div className="manager-profile">
-          <div className="manager-avatar">E</div>
-          <div>
-            <strong>EcoStyle Yonetici</strong>
-            <span>Yonetici Paneli</span>
-          </div>
+    <div className="screen manager-overview-screen">
+      <header className="manager-app-header">
+        <div>
+          <span className="manager-kicker">Yonetici Paneli</span>
+          <h1>EcoStyle Paneli</h1>
+          <p>{currentUser?.name || 'EcoStyle Yonetici'}</p>
         </div>
+        <button type="button" className="manager-logout-btn" onClick={logout}>Cikis</button>
+      </header>
 
-        <nav className="manager-nav">
-          {managerTabs.map(tab => (
-            <button
-              key={tab.id}
-              type="button"
-              className={`manager-nav-item ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              <span>{tab.icon}</span>
-              <b>{tab.label}</b>
-            </button>
-          ))}
-        </nav>
-      </aside>
-
-      <main className="manager-main">
-        <header className="manager-topbar">
-          <div className="manager-title-row">
-            <button className="manager-menu-btn" type="button" aria-label="Menu">☰</button>
-            <h1>EcoStyle Paneli</h1>
-          </div>
-          <div className="manager-user-actions">
-            <button type="button" aria-label="Bildirimler">♧</button>
-            <span>{currentUser?.name || 'EcoStyle Yonetici'}</span>
-            <button type="button" onClick={logout}>Cikis</button>
-          </div>
-        </header>
-
-        <section className="manager-content">
-          <div className="manager-metrics">
-            <article className="manager-metric-card">
-              <div className="manager-card-head">
-                <span>Toplam Envanter</span>
-                <b>▢</b>
-              </div>
-              <strong>{bags.length || 450}</strong>
-              <small>Yuksek talep mevcut</small>
-              <div className="manager-line-meter"><span style={{ width: `${Math.min((availableBags / Math.max(bags.length, 1)) * 100, 94)}%` }} /></div>
-            </article>
-
-            <article className="manager-metric-card">
-              <div className="manager-card-head">
-                <span>Aktif Kiralamalar</span>
-                <b>⇄</b>
-              </div>
-              <strong>{activeRentals.length || 128}</strong>
-              <small>Yuksek talep mevcut</small>
-              <div className="manager-segments">
-                {[25, 36, 52, 78, 44].map((size, index) => (
-                  <span key={size} className={index === 3 ? 'active' : ''} style={{ opacity: `${0.45 + index * 0.11}` }} />
-                ))}
-              </div>
-            </article>
-
-            <article className="manager-metric-card">
-              <div className="manager-card-head">
-                <span>Ort. Kiralama Suresi</span>
-                <b>◷</b>
-              </div>
-              <strong>{averageHours.toFixed(1)} hrs</strong>
-              <small>-0.5 sa ideal</small>
-              <div className="manager-efficiency">
-                <span>%{Math.min(Math.round((availableBags / Math.max(bags.length, 1)) * 100), 96) || 82}</span>
-                <b>Verimlilik hedefi</b>
-              </div>
-            </article>
-          </div>
-
-          <section className="manager-panel-card manager-location-panel">
-            <div className="manager-section-head">
-              <div>
-                <h2>Mekan Bazli Kiralamalar</h2>
-                <p>Perakende ortaklari genelindeki operasyonel performans</p>
-              </div>
-              <button type="button">↧ Veriyi Disa Aktar</button>
+      <main className="manager-overview-content">
+        <section className="manager-stats-grid">
+          <article className="manager-stat-card">
+            <span>Toplam Envanter</span>
+            <strong>{bags.length}</strong>
+            <small>{availableBags} canta musait</small>
+            <div className="manager-meter">
+              <i style={{ width: `${inventoryUsage}%` }} />
             </div>
+          </article>
 
-            <div className="manager-table">
-              <div className="manager-table-header">
-                <span>Mekan</span>
-                <span>Mevcut Canta</span>
-                <span>Kiralama / Iade</span>
-                <span>Toplam Kazanc</span>
-                <span>Durum</span>
-              </div>
+          <article className="manager-stat-card">
+            <span>Aktif Kiralamalar</span>
+            <strong>{activeRentals.length}</strong>
+            <small>{activeBagIds.size} canta kullanimda</small>
+            <div className="manager-meter">
+              <i style={{ width: `${bags.length ? Math.min((activeRentals.length / bags.length) * 100, 100) : 0}%` }} />
+            </div>
+          </article>
+
+          <article className="manager-stat-card">
+            <span>Ort. Kiralama Suresi</span>
+            <strong>{averageHours.toFixed(1)} saat</strong>
+            <small>{completedRentals.length} tamamlanan kiralama</small>
+            <div className="manager-meter">
+              <i style={{ width: `${Math.min((averageHours / 8) * 100, 100)}%` }} />
+            </div>
+          </article>
+        </section>
+
+        <section className="manager-card">
+          <div className="manager-card-title-row">
+            <div>
+              <h2>Mekan Bazli Kiralamalar</h2>
+              <p>Firebase verileriyle guncel operasyon ozeti</p>
+            </div>
+            <button type="button" onClick={exportLocationCsv}>CSV Indir</button>
+          </div>
+
+          {locationRows.length ? (
+            <div className="manager-location-list">
               {locationRows.map(row => (
-                <div className="manager-table-row" key={row.id}>
-                  <div className="manager-place">
-                    <span>{row.icon}</span>
+                <article className="manager-location-row" key={row.id}>
+                  <div className="manager-location-main">
+                    <div className="location-icon">⌖</div>
                     <div>
-                      <strong>{row.name}</strong>
-                      <small>{row.address}</small>
+                      <h3>{row.name}</h3>
+                      <p>{row.address}</p>
                     </div>
                   </div>
-                  <div className="manager-stock">
-                    <b className={row.isLow ? 'is-low' : ''}>{row.current} / {row.capacity}</b>
-                    <i><em style={{ width: `${Math.min((row.current / row.capacity) * 100, 100)}%` }} /></i>
+
+                  <div className="manager-location-metrics">
+                    <div>
+                      <span>Envanter</span>
+                      <strong className={row.isLow ? 'danger-text' : ''}>{row.available} / {row.capacity}</strong>
+                    </div>
+                    <div>
+                      <span>Kiralama / Iade</span>
+                      <strong>{row.activeCount} / {row.returnCount}</strong>
+                    </div>
+                    <div>
+                      <span>Kazanc</span>
+                      <strong>{row.revenue.toLocaleString('tr-TR')} TL</strong>
+                    </div>
                   </div>
-                  <div className="manager-flow">
-                    <span>↗ {row.rentals}</span>
-                    <span>↙ {row.returns}</span>
-                  </div>
-                  <strong className="manager-revenue">{row.revenue.toLocaleString('tr-TR')} TL</strong>
-                  <span className={`manager-status ${row.isLow ? 'danger' : ''}`}>{row.status}</span>
-                </div>
+
+                  <span className={`manager-status-badge ${row.isLow ? 'danger' : ''}`}>{row.status}</span>
+                </article>
               ))}
             </div>
-          </section>
+          ) : (
+            <div className="manager-empty-state">Henuz mekan verisi bulunmuyor.</div>
+          )}
+        </section>
 
-          <section className="manager-panel-card manager-growth">
-            <div className="manager-section-head compact">
-              <div>
-                <h2>↗ Buyume Trendleri</h2>
-                <p>Kiralama deviri Besiktas genislemesinden bu yana %18.4 artti.</p>
-              </div>
+        <section className="manager-card">
+          <div className="manager-card-title-row">
+            <div>
+              <h2>Son 7 Gun Trendi</h2>
+              <p>Gunluk baslatilan kiralama adetleri</p>
             </div>
-            <BarChart values={trendValues} />
-          </section>
+          </div>
+          <MiniBars values={trendValues} />
         </section>
       </main>
     </div>
