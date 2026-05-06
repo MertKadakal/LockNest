@@ -160,6 +160,18 @@ export default function AdminPanel() {
   };
 
   const totalRevenue = completedRentals.reduce((s, r) => s + (r.fee || 0), 0);
+  const completedRentalsWithDuration = completedRentals.filter(r => r.startTime && r.endTime && r.endTime > r.startTime);
+  const totalRentalDurationMs = completedRentalsWithDuration.reduce((acc, r) => acc + (r.endTime - r.startTime), 0);
+  const averageRentalDurationSeconds = completedRentalsWithDuration.length
+    ? Math.round(totalRentalDurationMs / completedRentalsWithDuration.length / 1000)
+    : 0;
+  const liveRentalStatuses = ['active', 'overdue', 'pending_return'];
+  const bagsInUse = new Set(
+    rentals
+      .filter(r => liveRentalStatuses.includes(r.status) && r.bagId)
+      .map(r => r.bagId)
+  ).size;
+  const totalBags = bags.length;
 
   return (
     <div className="admin-shell">
@@ -578,24 +590,22 @@ export default function AdminPanel() {
                 <div className="stat-card" style={{ borderTop: '4px solid var(--warning)' }}>
                   <div className="stat-label">Toplam Kiralama Süresi</div>
                   <div className="stat-value">
-                    {Math.round(completedRentals.reduce((acc, r) => acc + (r.endTime - r.startTime), 0) / (1000 * 60))} Dakika
+                    {Math.round(totalRentalDurationMs / (1000 * 60))} Dakika
                   </div>
                 </div>
-                <div className="stat-card" style={{ borderTop: '4px solid #2196f3' }}>
+                <div className="stat-card" style={{ borderTop: '4px solid var(--green-mid)' }}>
                   <div className="stat-label">Ortalama Kiralama Süresi</div>
-                  <div className="stat-value">
-                    {completedRentals.length > 0 
-                      ? Math.round((completedRentals.reduce((acc, r) => acc + (r.endTime - r.startTime), 0) / (1000 * 60)) / completedRentals.length) 
-                      : 0} Dakika
+                  <div className="stat-value">{formatElapsed(averageRentalDurationSeconds)}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                    {completedRentalsWithDuration.length} tamamlanan kiralama baz alındı
                   </div>
                 </div>
-                <div className="stat-card" style={{ borderTop: '4px solid #9c27b0' }}>
-                  <div className="stat-label">Çanta Durumu</div>
-                  <div className="stat-value">
-                    <span style={{ color: 'var(--warning)', marginRight: 4 }}>{bags.filter(b => !b.available).length}</span> 
-                    / {bags.length}
+                <div className="stat-card" style={{ borderTop: '4px solid var(--danger)' }}>
+                  <div className="stat-label">Çanta Envanteri</div>
+                  <div className="stat-value">{totalBags}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                    {bagsInUse} çanta şu anda kullanımda
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Kullanımda / Toplam Çanta</div>
                 </div>
               </div>
 
@@ -609,27 +619,31 @@ export default function AdminPanel() {
                   <div className="report-list">
                     {(() => {
                       const locMap = {};
-                      const locRevenue = {};
+                      locations.forEach(loc => {
+                        locMap[loc.name] = { count: 0, revenue: 0 };
+                      });
                       rentals.forEach(r => {
-                        locMap[r.locationName] = (locMap[r.locationName] || 0) + 1;
+                        if (!locMap[r.locationName]) {
+                          locMap[r.locationName] = { count: 0, revenue: 0 };
+                        }
+                        locMap[r.locationName].count += 1;
                         if (r.status === 'completed') {
-                          locRevenue[r.locationName] = (locRevenue[r.locationName] || 0) + (r.fee || 0);
+                          locMap[r.locationName].revenue += r.fee || 0;
                         }
                       });
                       const total = rentals.length || 1;
-                      return Object.entries(locMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => {
+                      return Object.entries(locMap).sort((a, b) => b[1].count - a[1].count).map(([name, stats]) => {
+                        const { count, revenue } = stats;
                         const pct = Math.round((count / total) * 100);
-                        const revenue = locRevenue[name] || 0;
                         return (
                           <div key={name} className="report-item">
                             <div className="report-item-info">
-                              <span>
-                                {name} 
-                                <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 8 }}>
-                                  ({revenue} TL Gelir)
-                                </span>
-                              </span>
-                              <span style={{ fontWeight: 700 }}>%{pct}</span>
+                              <span>{name}</span>
+                              <span style={{ fontWeight: 700 }}>{revenue} TL</span>
+                            </div>
+                            <div className="report-item-info" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                              <span>{count} kiralama</span>
+                              <span>%{pct}</span>
                             </div>
                             <div className="progress-bar-bg">
                               <div className="progress-bar-fill" style={{ width: `${pct}%`, background: 'var(--green-dark)' }}></div>
