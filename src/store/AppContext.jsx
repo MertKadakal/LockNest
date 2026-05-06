@@ -97,13 +97,27 @@ export function AppProvider({ children }) {
   }, [tick, rentals]);
 
   const login = useCallback((email, password) => {
+    const normalizedEmail = email.toLowerCase().trim();
+
+    if (normalizedEmail === 'manager@ecostyle.com' && password === 'manager123') {
+      setCurrentUser({
+        id: 'manager_ecostyle',
+        name: 'EcoStyle Yonetici',
+        email: 'manager@ecostyle.com',
+        balance: 0,
+      });
+      setView('manager');
+      return true;
+    }
+
     const user = users.find(u => u.email === email && u.password === password);
     if (!user) return false;
     setCurrentUser(user);
 
     // Check for admin email specifically
-    const isAdmin = email.toLowerCase().trim() === 'admin@beykoz.com';
-    setView(isAdmin ? 'admin' : 'home');
+    const isAdmin = normalizedEmail === 'admin@beykoz.com';
+    const isManager = normalizedEmail === 'manager@ecostyle.com';
+    setView(isAdmin ? 'admin' : isManager ? 'manager' : 'home');
 
     // Daha önce açık kiralama var mı kontrolü
     const myRental = rentals.find(r => r.userId === user.id && (r.status === 'active' || r.status === 'overdue' || r.status === 'pending_return'));

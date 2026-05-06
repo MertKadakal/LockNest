@@ -6,6 +6,7 @@ import RentalDetailScreen from './components/RentalDetailScreen';
 import ActiveRentalScreen from './components/ActiveRentalScreen';
 import ProfileScreen from './components/ProfileScreen';
 import AdminPanel from './components/AdminPanel';
+import ManagerPanel from './components/ManagerPanel';
 import './index.css';
 
 function BottomNav() {
@@ -70,6 +71,14 @@ function MobileApp() {
     return (
       <div className="phone-shell">
         <AdminPanel />
+      </div>
+    );
+  }
+
+  if (currentUser?.email?.toLowerCase().trim() === 'manager@ecostyle.com') {
+    return (
+      <div className="phone-shell">
+        <ManagerPanel />
       </div>
     );
   }

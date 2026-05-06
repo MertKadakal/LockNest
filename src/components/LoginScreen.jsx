@@ -112,6 +112,12 @@ export default function LoginScreen() {
     setError('');
   };
 
+  const fillManager = () => {
+    setEmail('manager@ecostyle.com');
+    setPassword('manager123');
+    setError('');
+  };
+
   return (
     <div className="login-screen">
 
@@ -147,6 +153,7 @@ export default function LoginScreen() {
             <button id="btn-login-submit" type="submit" className="btn-primary" style={{ marginBottom: 12 }}>Giriş Yap</button>
             <div style={{ display: 'flex', gap: 8 }}>
               <button id="btn-admin-login" type="button" className="btn-secondary" style={{ flex: 1, fontSize: 12, padding: 10 }} onClick={fillAdmin}>Admin Girişi</button>
+              <button id="btn-manager-login" type="button" className="btn-secondary" style={{ flex: 1, fontSize: 12, padding: 10 }} onClick={fillManager}>Yönetici Paneli</button>
             </div>
           </form>
         ) : isVerifying ? (
