@@ -123,7 +123,7 @@ export default function ManagerPanel() {
       ]),
     ];
 
-    downloadCsv(`ecostyle-mekan-raporu-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+    downloadCsv(`locknest-mekan-raporu-${new Date().toISOString().slice(0, 10)}.csv`, rows);
   };
 
   return (
@@ -131,10 +131,10 @@ export default function ManagerPanel() {
       <header className="manager-app-header">
         <div>
           <span className="manager-kicker">Yonetici Paneli</span>
-          <h1>EcoStyle Paneli</h1>
-          <p>{currentUser?.name || 'EcoStyle Yonetici'}</p>
+          <h1>LockNest Paneli</h1>
+          <p>{currentUser?.name || 'LockNest Yonetici'}</p>
         </div>
-        <button type="button" className="manager-logout-btn" onClick={logout}>Cikis</button>
+        <button type="button" className="manager-logout-btn" onClick={logout}>Çıkış</button>
       </header>
 
       <main className="manager-overview-content">
@@ -170,10 +170,10 @@ export default function ManagerPanel() {
         <section className="manager-card">
           <div className="manager-card-title-row">
             <div>
-              <h2>Mekan Bazli Kiralamalar</h2>
-              <p>Firebase verileriyle guncel operasyon ozeti</p>
+              <h2>Mekan Bazlı Kiralamalar</h2>
+              <p>Güncel operasyon özeti</p>
             </div>
-            <button type="button" onClick={exportLocationCsv}>CSV Indir</button>
+            <button type="button" onClick={exportLocationCsv}>CSV İndir</button>
           </div>
 
           {locationRows.length ? (
@@ -198,7 +198,7 @@ export default function ManagerPanel() {
                       <strong>{row.activeCount} / {row.returnCount}</strong>
                     </div>
                     <div>
-                      <span>Kazanc</span>
+                      <span>Kazanç</span>
                       <strong>{row.revenue.toLocaleString('tr-TR')} TL</strong>
                     </div>
                   </div>

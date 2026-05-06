@@ -189,7 +189,7 @@ export function AppProvider({ children }) {
   const logout = useCallback(() => {
     sweetalert.fire({
       title: 'Çıkış Yapılıyor',
-      text: 'Hesabınızdan çıkık yapmak istediğinize emin misiniz?',
+      text: 'Hesabınızdan çıkış yapmak istediğinize emin misiniz?',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Evet',

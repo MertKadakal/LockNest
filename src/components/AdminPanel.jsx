@@ -203,7 +203,6 @@ export default function AdminPanel() {
         </nav>
 
         <div className="admin-nav-bottom">
-          <button className="admin-nav-item" style={{ color: 'var(--text-muted)' }}>❓ Support</button>
           <button id="admin-logout-btn" className="admin-nav-item" style={{ color: 'var(--danger)' }} onClick={logout}>
             ↪ Logout
           </button>
