@@ -31,7 +31,7 @@ const STATUS_BADGE_CLASS = {
 };
 
 export default function AdminPanel() {
-  const { rentals, confirmReturn, cancelRental, addLocation, addBag, users, bags, locations, logout, addUser, deleteUser } = useApp();
+  const { rentals, confirmReturn, reportDamageFine, cancelRental, addLocation, addBag, users, bags, locations, logout, addUser, deleteUser } = useApp();
   const [activeNav, setActiveNav] = useState('dashboard');
   const [filter, setFilter] = useState('all');
   const [startDate, setStartDate] = useState('');
@@ -50,6 +50,7 @@ export default function AdminPanel() {
   const [newUserForm, setNewUserForm] = useState({ name: '', email: '', password: '' });
 
   const [confirmedIds, setConfirmedIds] = useState([]);
+  const [finedIds, setFinedIds] = useState([]);
   const [cancelledIds, setCancelledIds] = useState([]);
 
   const activeRentals = rentals.filter(r => r.status === 'active');
@@ -99,6 +100,17 @@ export default function AdminPanel() {
     setTimeout(() => {
       confirmReturn(rentalId);
     }, 500);
+  };
+
+  const handleDamageFine = async (rentalId) => {
+    setFinedIds(prev => [...prev, rentalId]);
+    try {
+      await reportDamageFine(rentalId);
+    } catch (error) {
+      console.error('Hasar bildirimi olusturulamadi:', error);
+      setFinedIds(prev => prev.filter(id => id !== rentalId));
+      sweetalert.fire('Hata', 'Hasar bildirimi kaydedilemedi. Lutfen tekrar deneyin.', 'error');
+    }
   };
 
   const handleCancel = (rentalId) => {
@@ -275,6 +287,7 @@ export default function AdminPanel() {
               <div className="rentals-grid">
                 {displayRentals.map(rental => {
                   const isConfirmed = confirmedIds.includes(rental.id);
+                  const isFined = finedIds.includes(rental.id);
                   return (
                     <div key={rental.id} className={`rental-card-admin ${rental.status === 'pending_return' ? 'rental-card-pending' : ''}`}>
                       <div className="rental-card-header">
@@ -314,14 +327,24 @@ export default function AdminPanel() {
 
                       <div className="action-row">
                         {rental.status === 'pending_return' && (
-                          <button
-                            className="btn-confirm"
-                            onClick={() => handleConfirm(rental.id)}
-                            disabled={isConfirmed}
-                            style={{ background: isConfirmed ? '#ccc' : 'var(--green-dark)' }}
-                          >
-                            {isConfirmed ? '✅ Onaylandı' : '✔ Onayla'}
-                          </button>
+                          <>
+                            <button
+                              className="btn-confirm"
+                              onClick={() => handleConfirm(rental.id)}
+                              disabled={isConfirmed || isFined}
+                              style={{ background: isConfirmed ? '#ccc' : 'var(--green-dark)' }}
+                            >
+                              {isConfirmed ? '✅ Onaylandı' : '✔ Onayla'}
+                            </button>
+                            <button
+                              className="btn-confirm btn-fine"
+                              onClick={() => handleDamageFine(rental.id)}
+                              disabled={isConfirmed || isFined}
+                              style={{ background: isFined ? '#ccc' : 'var(--danger)' }}
+                            >
+                              {isFined ? 'Ceza Kaydedildi' : 'Hasar Bildirimi - Cezai İşlem'}
+                            </button>
+                          </>
                         )}
                         {(rental.status === 'active' || rental.status === 'overdue') && (
                           <button
@@ -459,7 +482,16 @@ export default function AdminPanel() {
                         </td>
                         <td>
                           {rental.status === 'pending_return' && (
-                            <button className="table-btn-green" onClick={() => handleConfirm(rental.id)}>Onayla</button>
+                            <div className="table-action-row">
+                              <button className="table-btn-green" onClick={() => handleConfirm(rental.id)}>Onayla</button>
+                              <button
+                                className="table-btn-danger"
+                                onClick={() => handleDamageFine(rental.id)}
+                                disabled={finedIds.includes(rental.id)}
+                              >
+                                Hasar Bildirimi - Cezai İşlem
+                              </button>
+                            </div>
                           )}
                         </td>
                       </tr>

@@ -276,6 +276,20 @@ export function AppProvider({ children }) {
     }
   }, [rentals, currentUser, users]);
 
+  const reportDamageFine = useCallback(async (rentalId) => {
+    const rental = rentals.find(r => r.id === rentalId);
+    if (!rental) return false;
+
+    const fineId = `fine_${rentalId}`;
+    await setDoc(doc(db, 'fines', fineId), {
+      user_id: rental.userId,
+      amount: 500
+    });
+
+    await confirmReturn(rentalId);
+    return true;
+  }, [rentals, confirmReturn]);
+
   const cancelRental = useCallback(async (rentalId) => {
     const rental = rentals.find(r => r.id === rentalId);
     if (!rental) return;
@@ -342,7 +356,7 @@ export function AppProvider({ children }) {
       canStartRental, setCanStartRental,
       tick,
       login, register, logout, updateUserName, deleteUser, addUser,
-      startRental, requestReturn, confirmReturn, cancelRental,
+      startRental, requestReturn, confirmReturn, reportDamageFine, cancelRental,
       addLocation, addBag, addBalance, getActiveRental, calcFee,
     }}>
       {children}

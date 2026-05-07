@@ -631,6 +631,20 @@ body {
   cursor: not-allowed;
 }
 
+.action-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.action-row .btn-confirm {
+  flex: 1 1 180px;
+}
+
+.btn-fine:hover {
+  background: #b83232;
+}
+
 .filter-tabs {
   display: flex;
   gap: 8px;
@@ -1547,6 +1561,27 @@ body {
   border-radius: 4px;
   font-size: 11px;
   cursor: pointer;
+}
+
+.table-action-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.table-btn-danger {
+  background: var(--danger);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.table-btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .stat-flex {
