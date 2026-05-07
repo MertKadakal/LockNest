@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../store/AppContext';
 import sweetalert from 'sweetalert2';
-import { useState } from 'react';
-import { useApp } from '../store/AppContext';
-import sweetalert from 'sweetalert2';
 import emailjs from '@emailjs/browser';
 
 export default function LoginScreen() {
@@ -200,11 +197,11 @@ export default function LoginScreen() {
               <input id="reg-password" autoComplete="new-password" className="input-field" type="password" placeholder="En az 4 karakter" value={password} onChange={e => setPassword(e.target.value)} />
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '16px' }}>
-              <input 
-                id="reg-agreement" 
-                type="checkbox" 
-                checked={agreementAccepted} 
-                onChange={e => setAgreementAccepted(e.target.checked)} 
+              <input
+                id="reg-agreement"
+                type="checkbox"
+                checked={agreementAccepted}
+                onChange={e => setAgreementAccepted(e.target.checked)}
                 style={{ marginTop: '4px', cursor: 'pointer' }}
               />
               <label htmlFor="reg-agreement" style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.4', cursor: 'pointer' }}>
