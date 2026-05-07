@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useApp } from '../store/AppContext';
 import sweetalert from 'sweetalert2';
+import { useState } from 'react';
+import { useApp } from '../store/AppContext';
+import sweetalert from 'sweetalert2';
 import emailjs from '@emailjs/browser';
 
 export default function LoginScreen() {
@@ -10,6 +13,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState('');
+  const [agreementAccepted, setAgreementAccepted] = useState(false);
 
   // Email verification state
   const [isVerifying, setIsVerifying] = useState(false);
@@ -29,6 +33,7 @@ export default function LoginScreen() {
     e.preventDefault();
     if (!name || !email || !password) { setError('Lütfen tüm alanları doldurun.'); return; }
     if (password.length < 4) { setError('Şifre en az 4 karakter olmalıdır.'); return; }
+    if (!agreementAccepted) { setError('Lütfen kullanıcı sözleşmesini onaylayınız.'); return; }
 
     // Check if user exists
     if (users.find(u => u.email === email)) {
@@ -193,6 +198,18 @@ export default function LoginScreen() {
             <div className="input-group">
               <label className="input-label">Şifre</label>
               <input id="reg-password" autoComplete="new-password" className="input-field" type="password" placeholder="En az 4 karakter" value={password} onChange={e => setPassword(e.target.value)} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '16px' }}>
+              <input 
+                id="reg-agreement" 
+                type="checkbox" 
+                checked={agreementAccepted} 
+                onChange={e => setAgreementAccepted(e.target.checked)} 
+                style={{ marginTop: '4px', cursor: 'pointer' }}
+              />
+              <label htmlFor="reg-agreement" style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.4', cursor: 'pointer' }}>
+                Çantaya zarar vermeyeceğimi; çantada oluşabilecek yanma, kopma, çizilme vb. durumlarda tüm sorumluluğu almayı ve doğacak cezai şartları kabul ettiğimi onaylıyorum.
+              </label>
             </div>
             <button id="btn-register-submit" type="submit" className="btn-primary">Doğrulama Kodu Gönder</button>
           </form>
