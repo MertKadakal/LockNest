@@ -467,7 +467,7 @@ export default function AdminPanel() {
                     </tr>
                   </thead>
                   <tbody>
-                    {rentals.map(rental => (
+                    {[...rentals].sort((a, b) => b.startTime - a.startTime).map(rental => (
                       <tr key={rental.id}>
                         <td>#{rental.id}</td>
                         <td style={{ fontWeight: 600 }}>{rental.userName}</td>
