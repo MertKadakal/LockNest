@@ -93,7 +93,7 @@ Proje şu anda aktif olarak yayındadır. Uygulamayı denemek ve farklı kullan�
   <img src="./images/login.png" width="200" alt="Login Ekranı" style="margin: 5px;">
   <img src="./images/anasayfa.png" width="200" alt="Anasayfa" style="margin: 5px;">
   <img src="./images/kiralama.png" width="200" alt="Kiralama Ekranı" style="margin: 5px;">
-  <img src="./images/kullanıcı.png" width="200" alt="Profil Ekranı" style="margin: 5px;">
+  <img src="./images/kullanici.png" width="200" alt="Profil Ekranı" style="margin: 5px;">
 </p>
 
 ### Admin Paneli (Desktop)
