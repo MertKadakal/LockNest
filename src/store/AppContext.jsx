@@ -99,11 +99,11 @@ export function AppProvider({ children }) {
   const login = useCallback((email, password) => {
     const normalizedEmail = email.toLowerCase().trim();
 
-    if (normalizedEmail === 'manager@ecostyle.com' && password === 'manager123') {
+    if (normalizedEmail === 'manager@locknest.com' && password === 'manager123') {
       setCurrentUser({
-        id: 'manager_ecostyle',
-        name: 'EcoStyle Yonetici',
-        email: 'manager@ecostyle.com',
+        id: 'manager_locknest',
+        name: 'LockNest Yonetici',
+        email: 'manager@locknest.com',
         balance: 0,
       });
       setView('manager');
@@ -116,7 +116,7 @@ export function AppProvider({ children }) {
 
     // Check for admin email specifically
     const isAdmin = normalizedEmail === 'admin@beykoz.com';
-    const isManager = normalizedEmail === 'manager@ecostyle.com';
+    const isManager = normalizedEmail === 'manager@locknest.com';
     setView(isAdmin ? 'admin' : isManager ? 'manager' : 'home');
 
     // Daha önce açık kiralama var mı kontrolü

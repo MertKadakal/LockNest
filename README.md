@@ -1,170 +1,115 @@
+# 🌱 LockNest - Doğa Dostu Çanta Kiralama Sistemi
+
+LockNest, çevre bilincini artırmak ve plastik poşet kullanımını azaltmak amacıyla geliştirilmiş, lokasyon bazlı, gerçek zamanlı bir doğa dostu çanta kiralama ve yönetim platformudur. Sistem; son kullanıcılar (müşteriler), operasyon yöneticileri (admin) ve üst düzey yöneticiler (manager) için özel olarak tasarlanmış üç farklı arayüzden oluşmaktadır.
 
 ---
 
-## **EcoStyle - Kapsamlı Depo Özeti**
-
-### 📋 **Depo Metaveri**
-
-| Özellik | Değer |
-|----------|-------|
-| **Sahibi** | MertKadakal (Bireysel Geliştirici) |
-| **Depo Adı** | EcoStyle |
-| **Oluşturulma Tarihi** | 11 Nisan 2026 |
-| **Görünürlük** | Herkese Açık |
-| **Depo Boyutu** | 14.063 KB (~14 MB) |
+## 🚀 Projenin Amacı ve Vizyonu
+Kullanıcıların belirli lokasyonlardan doğa dostu, dayanıklı bez çantaları kiralayabilmesini sağlayan uçtan uca bir sistemdir. Kullanıcılar çantayı kiraladıkları süre boyunca ücretlendirilir, dijital cüzdanları üzerinden ödeme yapar ve çantayı teslim ettiklerinde süreç tamamlanır. Bu döngü sayesinde çevreye duyarlı bir tüketim alışkanlığı teşvik edilmektedir.
 
 ---
 
-### 💻 **Teknoloji Yığını - Detaylı Dökümü**
+## 📱 Temel Özellikler ve Kullanıcı Rolleri
 
-**Dil Bileşimi (bayt cinsinden):**
-```
-JavaScript:  89.030 bayt (%69,9)
-CSS:         32.508 bayt (%25,5)
-Swift:        3.762 bayt (%3)
-HTML:           802 bayt (%0,6)
-Java:         1.298 bayt (%1)
-```
+Sistemde **3 farklı rol** bulunmaktadır ve her rolün kendine ait bir arayüzü vardır:
 
-**Temel Bağımlılıklar:**
-- **Ön Uç Çerçevesi:** React 19.2.4 ve React DOM
-- **Derleme Aracı:** Vite 8.0.4 ve React eklenti desteği
-- **Durum Yönetimi:** React Context API (yerleşik, Redux/Zustand gerekmez)
-- **Arka Uç/Veritabanı:** Firebase 12.12.0 (Firestore & Kimlik Doğrulaması)
-- **Arka Uç Sunucusu:** Node.js ve Express.js 5.2.1
-- **E-posta Hizmeti:** EmailJS 4.4.1 (iletişim/bildirim e-postaları için)
-- **Mobil Çerçevesi:** Capacitor 8.3.0 (iOS & Android desteği) + Expo 55.0.13
-- **Kullanıcı Arayüzü Bildirileri:** SweetAlert2 11.26.24
-- **Sunucu Araçları:** CORS 2.8.6 (köken arası istekler için)
+### 1. 👤 Son Kullanıcı (Müşteri) Uygulaması
+Mobil odaklı (Capacitor ile iOS/Android uyumlu) tasarlanmıştır.
+* **Kayıt/Giriş Sistemi:** Firebase Auth destekli güvenli kullanıcı oturum yönetimi.
+* **Lokasyon ve Çanta Görüntüleme:** Kullanıcılar harita/liste üzerinden aktif lokasyonları ve bu lokasyonlardaki müsait çantaları (kapasite, boyut, özellik vb.) görebilir.
+* **Dijital Cüzdan:** Kiralama yapabilmek için kullanıcının bakiyesinin pozitif olması gerekir. Ücretler cüzdandan otomatik düşülür.
+* **Canlı Kiralama Takibi:** Kiralama başlatıldığında, aktif süre ve güncel ücreti saniye saniye gösteren canlı bir zamanlayıcı devreye girer.
+* **Teslimat ve İade İşlemi:** Kullanıcı uygulamadan iade talebi oluşturur ve işlem yöneticinin onayına düşer.
 
-**Geliştirme Araçları:**
-- ESLint 9.39.4 kod kalitesi için
-- React hook'ları ve yenileme desenleri için ESLint eklentileri
-- React/React DOM için tür tanımları
-- Optimize edilmiş üretim derlemeleri için Vite derleme konfigürasyonu
+### 2. 🛡️ Admin Paneli (Operasyon Yönetimi)
+`admin@beykoz.com` adresiyle giriş yapıldığında erişilen, sahadaki operasyonun yönetildiği kapsamlı masaüstü/web paneli.
+* **Canlı Operasyon Kontrol Paneli:** Aktif, teslim bekleyen ve gecikmiş (2 saati aşan) kiralamaların anlık takibi.
+* **Kiralama Onay/İptal İşlemleri:** Kullanıcının iade ettiği çantaları onaylama veya sorunlu kiralamaları iptal etme.
+* **Cezai İşlem Yönetimi:** Çantanın hasar görmesi durumunda tek tıkla kullanıcıya **500 TL Hasar Cezası (Fine)** kesme yetkisi.
+* **Lokasyon ve Envanter Yönetimi:** Yeni şube/lokasyon ekleme ve bu lokasyonlara yeni çantalar (standart, yıkanabilir vb.) tanımlama.
+* **Kullanıcı Yönetimi (CRM):** Sistemdeki kullanıcıları listeleme, bakiye durumlarını görme, kiralama geçmişlerini inceleme ve gerektiğinde kullanıcı silme.
+* **Detaylı Raporlama:** Tarihe göre filtreleme, toplam gelir, ortalama kiralama süresi, yoğun saatler (Peak Hours) ve lokasyon bazlı gelir dağılımı grafikleri.
 
----
-
-### 📁 **Proje Yapısı**
-
-**Kök Dizinleri:**
-- `.expo/` - Expo konfigürasyon metaveri (sürüm kontrolünden hariç)
-- `.github/` - GitHub'a özgü konfigürasyon (iş akışları, şablonlar)
-- `android/` - Android platform dosyaları (Capacitor entegrasyonu)
-- `ios/` - iOS platform dosyaları (Capacitor/SPM bağımlılıkları)
-- `src/` - Ana kaynak kod dizini
-- `public/` - İstemciye sunulan statik varlıklar
-- `assets/` - Ek varlıklar (görseller, simgeler, vb.)
-- `icons/` - Uygulama simge dosyaları
-
-**Kök Konfigürasyon Dosyaları:**
-- `package.json` - Node.js bağımlılıkları ve betikleri
-- `package-lock.json` - 548 KB kilitli bağımlılık sürümleri
-- `vite.config.js` - Vite derleme konfigürasyonu
-- `capacitor.config.json` - Capacitor uygulama konfigürasyonu
-- `eslint.config.js` - ESLint kuralları (758 bayt)
-- `.gitignore` - Git hariç tutma kuralları (253 bayt)
-- `index.html` - Tek sayfalık uygulama giriş noktası (802 bayt)
+### 3. 📊 Yönetici (Manager) Paneli
+`manager@locknest.com` adresiyle giriş yapıldığında erişilen (LockNest Paneli olarak da adlandırılır), üst düzey stratejik kararlar için tasarlanmış özet raporlama paneli.
+* **Genel Bakış (Overview):** Toplam envanter kullanımı, aktif kiralama oranları ve ortalama kullanım süreleri.
+* **Lokasyon Bazlı Performans:** Hangi lokasyonda kaç çanta var, doluluk oranı nedir, ne kadar gelir elde edilmiş? (Düşük stok durumunda uyarı verir).
+* **CSV Dışa Aktarım:** Operasyon verilerini Excel/CSV formatında indirip dış sistemlerde analiz etme imkanı.
+* **7 Günlük Trend Analizi:** Son bir hafta içindeki kiralama trendlerini gösteren mini grafikler (MiniBars).
 
 ---
 
-### 🔧 **Derleme ve Çalışma Zamanı Konfigürasyonu**
+## ⚙️ İş Mantığı ve Ücretlendirme (Business Logic)
 
-**NPM Betikleri:**
-```json
-{
-  "dev": "vite",                           // Yerel geliştirme sunucusu
-  "build": "vite build",                   // Üretim derlemesi
-  "lint": "eslint .",                      // Kod kalitesi kontrolü
-  "preview": "vite preview",               // Üretim derlemesini önizle
-  "cap:build": "vite build && npx cap sync", // Mobil derleme ve senkronizasyon
-  "cap:ios": "npx cap open ios",          // iOS projesini aç
-  "cap:android": "npx cap open android",  // Android projesini aç
-  "start": "node server/sunucu.js"        // Node.js sunucusunu başlat
-}
-```
-
-**Vite Konfigürasyonu:**
-- React eklentisi JSX dönüşümü için etkinleştirildi
-- Temel yol `/EcoStyle/` (GitHub Pages dağıtımı için)
-- ES modülleri desteği
+* **Dinamik Fiyatlandırma:** Kiralama ücreti her **30 dakikada bir 15 TL** olarak hesaplanır (`Math.ceil(gecen_sure / 30 dk) * 15`). Süre canlı olarak işler.
+* **Ön Şartlar:** Bakiye eksiye düştüğünde sistem yeni kiralamaya izin vermez.
+* **Gecikme Kontrolü:** Kiralama 2 saati (`2 * 3600 sn`) aşarsa durumu otomatik olarak `overdue` (gecikmiş) statüsüne geçer.
+* **Hasar Politikası:** İade sırasında çanta hasarlıysa normal kiralama ücretine ek olarak (veya yerine) `fines` koleksiyonuna **500 TL** tutarında bir ceza kaydı düşülür ve bakiye etkilenir.
 
 ---
 
-### 📱 **Temel Özellikler - Teknik Uygulama**
+## 💻 Kullanılan Teknolojiler (Tech Stack)
 
-**Kullanıcı Paneli Özellikleri:**
-- **Kimlik Doğrulaması:** Firebase Auth güvenli kimlik bilgisi yönetimi
-- **Gerçek Zamanlı Kiralama Takibi:** Kiralama süresi ve birikmiş ücretleri gösteren canlı sayaç bileşeni
-- **Konum Tabanlı Seçim:** Firestore'dan kullanılabilir çantaları alan dinamik konum seçici
-- **Dinamik Fiyatlandırma:** Otomatik hesaplama motoru (dakika başına ₺15) otomatik güncelleme mantığı ile
-- **Dijital Cüzdan:** Firestore destekli bakiye sistemi kiralama tamamlanmasında otomatik kesinti ile
+**Frontend:**
+* **React 19 & Vite 8:** Yüksek performanslı, modern frontend mimarisi ve hızlı build aracı.
+* **SweetAlert2:** Modern, kullanıcı dostu popup ve bildirim sistemi.
+* **Vanilla CSS:** Özelleştirilmiş, modern ve duyarlı (responsive) UI/UX tasarımı.
 
-**Yönetici Paneli Özellikleri:**
-- **Gerçek Zamanlı Kontrol Paneli:** Etkin, gecikmiş ve beklemede olan kiralamaları gösteren Firestore sorguları
-- **Kullanıcı Yönetimi:** Kullanıcı hesapları ve bakiye değişiklikleri için CRUD işlemleri
-- **Envanter Sistemi:** Firestore belge oluşturma ile çanta ve konum yönetimi
-- **Gelişmiş Filtreleme:** Tarih aralığı tabanlı kiralama geçmişi sorguları
-- **Gelir Raporlaması:** Toplam gelir hesaplamaları ve analitiği
+**Backend & Database:**
+* **Firebase (Firestore):** Gerçek zamanlı veritabanı. Kiralama sayacı, bakiye, envanter durumu anında tüm cihazlarda güncellenir.
+* **Firebase Auth:** Güvenli kullanıcı kimlik doğrulama altyapısı (kredi kartı/bakiye güvenliği için kritik).
+* **Node.js & Express (Opsiyonel API):** `server/sunucu.js` ile desteklenen, harici entegrasyonlar için hazır REST API altyapısı.
 
 ---
 
-### 🔄 **Geliştirme Faaliyeti ve Commit Geçmişi**
+## 🗄️ Veritabanı Şeması (Firestore Collections)
 
-**Commit Desenleri:**
-- Çoğu commit MertKadakal (mert.kadakal1629@gmail.com) tarafından yazıldı
-- 14-17 Nisan tarihlerinde yüksek aktivite (özellik düzeltmeleri ve entegrasyon)
-- Odak alanları: Sayaç/fiyatlandırma mantığı, EmailJS entegrasyonu, ön uç iyileştirmeleri, yönetici paneli düzeltmeleri
-- Kütük hatalarının çözüldüğünü gösteren "counter fixed" commit'leri ile son stabilizasyon fazı
-
-**Not:** Daha fazla commit mevcuttur. [GitHub'da tam commit geçmişini görüntüle](https://github.com/MertKadakal/EcoStyle/commits/main)
-
----
-
-### ⚙️ **Derleme ve Dağıtım Konfigürasyonu**
-
-**Capacitor Kurulumu:**
-- Platform desteği: iOS ve Android
-- React web uygulamasının yerel mobil uygulamalar olarak çalışmasını sağlar
-- Capacitor konfigürasyon dosyası uygulama metaveri ve izinlerini yönetir
-
-**GitHub Pages Desteği:**
-- Depo GitHub Pages'in etkin (`has_pages: true`)
-- Vite, GitHub Pages yönlendirmesi için `/EcoStyle/` temel yolu ile yapılandırıldı
-- `npm run build` aracılığıyla statik site üretimi hazır
-
-**Sunucu Konfigürasyonu:**
-- Node.js Express sunucusu `server/sunucu.js` adresinde kullanılabilir
-- Köken arası API istekleri için CORS etkinleştirildi
-- Üretim sunucusu `npm start` ile başlatılabilir
+Sistem NoSQL yapısında 5 temel koleksiyon üzerinden çalışır:
+1. **`users`**: Kullanıcı profilleri, anlık bakiye (`balance`), kiralama geçmişleri ve yetki bilgileri.
+2. **`locations`**: İstasyon/Şube bilgileri, adresleri ve anlık müsait çanta durumları.
+3. **`bags`**: Çanta özellikleri (tip, boyut, kapasite), ait olduğu lokasyon (`locationId`) ve müsaitlik (`available`) durumu.
+4. **`rentals`**: Başlangıç-bitiş zamanı, hesaplanan anlık ücret (`fee`), statü (`active`, `pending_return`, `completed`, `overdue`, `cancelled`), kiralayan kullanıcı ve çanta referansları.
+5. **`fines`**: Hasar gören çantalar için oluşturulan mali ceza kayıtları (`amount: 500`).
 
 ---
 
-### 📊 **Depo İstatistikleri**
+## 🛠️ Kurulum ve Geliştirme Ortamı (Setup)
 
-- **Toplam Depo Boyutu:** 14 MB
-- **Ana Bağımlılık Boyutu:** Yalnızca package-lock.json 548 KB
-- **Belgeleme:** README.md (3.150 bayt)
-- **Konfigürasyon Dosyaları:** Çoklu (ESLint, Capacitor, Vite, .gitignore)
+Projeyi yerel ortamınızda çalıştırmak için aşağıdaki adımları izleyin:
+
+### Gereksinimler
+* Node.js (v18 veya üzeri önerilir)
+* npm veya yarn paket yöneticisi
+
+### Adımlar
+
+1. **Depoyu Klonlayın:**
+   ```bash
+   git clone https://github.com/MertKadakal/EcoStyle.git
+   cd EcoStyle
+   ```
+
+2. **Bağımlılıkları Yükleyin:**
+   ```bash
+   npm install
+   ```
+
+3. **Geliştirme Sunucusunu Başlatın (Web):**
+   ```bash
+   npm run dev
+   ```
+   *Uygulama `http://localhost:5173` adresinde çalışacaktır.*
+
+4. **Test Hesapları:**
+   * **Admin:** `admin@beykoz.com` (Giriş yaparak Admin panelini test edebilirsiniz)
+   * **Manager:** `manager@locknest.com` (Şifre: `manager123`)
 
 ---
 
-### 📝 **Dikkate Değer Proje Özellikleri**
+## 🎨 Arayüzden Kareler
 
-1. **İki Dilli Belgeleme:** Kod yorumları ve commit'leri Türkçe ve İngilizcedir, Türk geliştiriciyi gösterir
-2. **Çoklu Platform Odağı:** Capacitor aracılığıyla Web (React/Vite), iOS (Swift), Android (Java) desteği
-3. **Arka Uç Entegrasyonu:** Sunucu tarafı Express bileşeni gerçek API arka ucunu önerir
-4. **E-posta Bildirimleri:** Kullanıcı iletişimi için EmailJS entegrasyonu
-5. **Yakın Zamanlı Aktif Geliştirme:** Son 6 gündeki çoğu commit etkin devam eden çalışmayı gösterir
-6. **Hata Düzeltme Fazı:** Son "counter fixed" commit'leri hata ayıklama ve stabilizasyon fazını gösterir
-7. **Önceki Özellik Kaldırma:** QR kod işlevi kaldırıldı (16 Nisan), özellik iterasyonunu gösterir
+*Uygulamanın arayüzü, mobile-first mantığıyla "Phone Shell" içerisinde tasarlanmış olup, admin ve manager panelleri geniş ekran (Masaüstü) dashboard deneyimi sunar. UI'da doğayı temsil eden yeşil tonları (`var(--green-dark)`, `var(--green-accent)`) ağırlıklı olarak kullanılmıştır.*
 
 ---
-
-### 🚀 **Geliştirme Hızı**
-
-- **Commit Sıklığı:** 15 gün içinde ~30 commit (~günde 2 commit)
-- **Etkin Günler:** 12-17 Nisan en yüksek aktiviteyi gösterir
-- **Geliştirme Durumu:** Son zamanlarda stabilite ve düzeltmelere odaklanan aktif devam eden geliştirme
-
-Bu, ön uç, arka uç, mobil platformlar ve bulut hizmetleri entegrasyonunu kapsayan tam bir teknoloji yığınına sahip etkin geliştirilen, modern bir web/mobil hibrit uygulamadır.
+**Geliştirici:** Mert Kadakal  
+**Oluşturulma Tarihi:** Nisan 2026

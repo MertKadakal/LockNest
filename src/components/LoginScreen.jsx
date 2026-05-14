@@ -115,7 +115,7 @@ export default function LoginScreen() {
   };
 
   const fillManager = () => {
-    setEmail('manager@ecostyle.com');
+    setEmail('manager@locknest.com');
     setPassword('manager123');
     setError('');
   };

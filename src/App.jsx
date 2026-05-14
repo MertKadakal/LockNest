@@ -75,7 +75,7 @@ function MobileApp() {
     );
   }
 
-  if (currentUser?.email?.toLowerCase().trim() === 'manager@ecostyle.com') {
+  if (currentUser?.email?.toLowerCase().trim() === 'manager@locknest.com') {
     return (
       <div className="phone-shell">
         <ManagerPanel />
